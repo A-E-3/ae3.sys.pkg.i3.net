@@ -1,0 +1,13 @@
+Type: ae3.Package
+Name: ae3.sys.pkg.i3.net
+Info: Base Network SDK and tools
+Requires: \
+	ae3.api \
+	ae3.sdk \
+	ae3.base \
+
+Provides: \
+	ae3.network \
+	--source-process:compile-java \
+	source-process:ae3-packages \
+

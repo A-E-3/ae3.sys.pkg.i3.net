@@ -1,0 +1,8 @@
+{
+	"type" : "ae3.Package",
+	"name" : "ae3.network",
+	"description" : "Networking (IP) Support",
+	"version" : "1.0",
+	"provides" : "ae3.network",
+	"requires" : "ae3.base"
+}
