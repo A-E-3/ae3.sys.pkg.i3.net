@@ -33,7 +33,6 @@ const Principal = module.exports = ae3.Class.create(
 		}
 		Object.defineProperties(this, {
 			'key' : {
-				enumerable : true,
 				writable : true, 
 				value : key || null
 			},
@@ -46,19 +45,8 @@ const Principal = module.exports = ae3.Class.create(
 				configurable : true, 
 				value : secret || null
 			},
-			'sRx' : {
-				writable : true, 
-				enumerable : true, 
-				configurable : true, 
-				value : serial ?? 0
-			},
-			'sTx' : {
-				writable : true, 
-				enumerable : true, 
-				configurable : true, 
-				value : serial ?? 0
-			},
 		});
+		this.sRx = this.sTx = (serial ^ 0) || 0;
 		return this;
 	},
 	/* instance */
@@ -94,6 +82,7 @@ const Principal = module.exports = ae3.Class.create(
 		 * base16 representation of the key
 		 */
 		keyHex : {
+			enumerable : true,
 			get : function(){
 				return Format.binaryAsHex(this.key);
 			}
@@ -122,26 +111,15 @@ const Principal = module.exports = ae3.Class.create(
 					serial
 				);
 
-				serial = (serial ^ 0) || 0;
 				Object.defineProperties(this, {
 					'secret' : {
 						writable : true, 
 						configurable : true, 
 						value : secret ?? this.secret ?? null
-					},
-					'sRx' : {
-						writable : true, 
-						enumerable : true, 
-						configurable : true, 
-						value : serial
-					},
-					'sTx' : {
-						writable : true, 
-						enumerable : true, 
-						configurable : true, 
-						value : serial
-					},
+					}
 				});
+				
+				this.sRx = this.sTx = (serial ^ 0) || 0;
 			}
 		},
 		address : {
@@ -264,15 +242,33 @@ const Principal = module.exports = ae3.Class.create(
 			 * message
 			 * address
 			 */
-			value : UdpServiceHelper.principalSendImpl || (function(b, d, m, a /* locals: */, key, s, len, pkt, k, v){
+			value : UdpServiceHelper.principalSendImpl || (function(
+				b, // binary buffer
+				d, // digest object
+				m, // message object
+				a  // address object
+				/* locals: */, 
+				key, // binary key
+				s, // serial number
+				len, // length
+				pkt // packet
+			){
 				if( ! (a ||= this.dst) ){
 					if(false !== m.log){
-						console.log("UDP::Principal:sendImpl: %s: udp-send-skip, no address, message: %s", this, m);
+						console.log(
+							"UDP::Principal:sendImpl: %s: udp-send-skip, no address, message: %s", 
+							this, 
+							m
+						);
 					}
 					return 0;
 				}
-				if( ! (key = this.key || m.key) ){
-					console.log("UDP::Principal:sendImpl: %s: udp-send-skip, no dst alias, message: %s", this, m);
+				if( ! (key = (this.key ?? m.key)) ){
+					console.log(
+						"UDP::Principal:sendImpl: %s: udp-send-skip, no dst alias, message: %s", 
+						this, 
+						m
+					);
 					return 0;
 				}
 				
@@ -305,14 +301,14 @@ const Principal = module.exports = ae3.Class.create(
 				 */
 				copyBytes(d.result, 0, b, 0, 16);
 				
-				if(false && (!false !== m.log)){
-					m = Object.create(m);
-					for keys(k in m){
+				if(true === m.log){
+					Object.keys( (m = Object.create(m)) ).forEach(function(k, v){
 						v = m[k];
 						isSocketAddress(v) && (m[k] = v.address + ':' + v.port);
-					}
-					console.log("UDP::Principal:sendImpl: udp-send: -> %s @ %s:%s, ser: %s, len: %s, %s", 
-						Format.jsObject(key.slice(0, 12)), 
+					});
+					console.log("UDP::Principal:sendImpl: %s: udp-send: -> %s @ %s:%s, ser: %s, len: %s, %s",
+						this, 
+						Format.binaryAsHex(key.slice(0, 12)), 
 						a.address.hostAddress, 
 						a.port,
 						s,
