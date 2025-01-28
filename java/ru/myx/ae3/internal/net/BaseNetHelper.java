@@ -3,6 +3,7 @@ package ru.myx.ae3.internal.net;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 
 import ru.myx.ae3.base.Base;
 import ru.myx.ae3.base.BaseObject;
@@ -14,7 +15,18 @@ import ru.myx.sapi.FormatSAPI;
 /** @author myx */
 @ReflectionManual
 public final class BaseNetHelper {
-
+	
+	/** @return */
+	@ReflectionExplicit
+	public static String getLocalHostName() {
+		
+		try {
+			return InetAddress.getLocalHost().getHostName();
+		} catch (final UnknownHostException e) {
+			return null;
+		}
+	}
+	
 	/** @param addressObject
 	 * @return
 	 * @throws IOException
@@ -36,7 +48,7 @@ public final class BaseNetHelper {
 	public static BaseObject inetAddress(//
 			final BaseObject addressObject//
 	) throws IOException {
-
+		
 		final Object baseValue = addressObject.baseValue();
 		if (baseValue == null) {
 			return Base.forUnknown(InetAddress.getLoopbackAddress());
@@ -49,14 +61,14 @@ public final class BaseNetHelper {
 		}
 		return addressObject;
 	}
-
+	
 	/** @param bufferObject
 	 * @param offsetObject
 	 * @param lengthObject
 	 *            only 4 or 16 values are supported
 	 * @return
 	 * @throws IOException
-	 *			
+	 * 			
 	 *             <code>
 		value : function(buffer, offset, length){
 			switch(length){
@@ -74,49 +86,49 @@ public final class BaseNetHelper {
 			final BaseObject offsetObject,
 			final BaseObject lengthObject //
 	) throws IOException {
-
+		
 		final byte[] buffer = (byte[]) bufferObject.baseValue();
 		final int offset = offsetObject.baseToJavaInteger();
 		final int length = lengthObject.baseToJavaInteger();
-
+		
 		if (buffer == null) {
 			throw new IllegalArgumentException("byte[] buffer is expected, bufferObject class: " + bufferObject.getClass().getName());
 		}
-
+		
 		switch (length) {
 			case 4 :
 			case 16 :
-
+				
 				if (buffer.length - offset < length) {
 					throw new IllegalArgumentException("byte[] buffer is too small: length: " + buffer.length + ", offset: " + offset);
 				}
 				return Base.forUnknown(InetAddress.getByName(FormatSAPI.binaryAsInetAddress(buffer, offset, length).toString()));
-
+			
 			default :
-
+				
 				throw new IllegalArgumentException("inetAddressFromBuffer: invalid address length: " + length);
 		}
-
+		
 	}
-
+	
 	/** Checks that random string from an unknown origin is an ip4 address
 	 *
 	 * @param a
 	 * @return */
 	@ReflectionExplicit
 	public static BasePrimitiveBoolean isValidIPv4(final CharSequence a) {
-
+		
 		/** is there an address at all? */
 		if (a == null) {
 			return BaseObject.FALSE;
 		}
-
+		
 		final int length = a.length();
 		/** toot short or too long 8) */
 		if (length < 7 || length > 15) {
 			return BaseObject.FALSE;
 		}
-
+		
 		int lastPeriod = length;
 		characterLoop : for (int i = length - 1; i >= 0; --i) {
 			final char c = a.charAt(i);
@@ -151,7 +163,7 @@ public final class BaseNetHelper {
 		}
 		return BaseObject.TRUE;
 	}
-
+	
 	/** @param bufferObject
 	 * @param offsetObject
 	 * @param lengthObject
@@ -176,18 +188,18 @@ public final class BaseNetHelper {
 			final BaseObject offsetObject,
 			final BaseObject lengthObject //
 	) throws IOException {
-
+		
 		final byte[] buffer = (byte[]) bufferObject.baseValue();
 		final int offset = offsetObject.baseToJavaInteger();
 		final int length = lengthObject.baseToJavaInteger();
-
+		
 		if (buffer == null) {
 			throw new IllegalArgumentException("byte[] buffer is expected, bufferObject class: " + bufferObject.getClass().getName());
 		}
-
+		
 		switch (length) {
 			case 6 :
-
+				
 				if (buffer.length - offset < length) {
 					throw new IllegalArgumentException("byte[] buffer is too small: length: " + buffer.length + ", offset: " + offset);
 				}
@@ -197,9 +209,9 @@ public final class BaseNetHelper {
 								(buffer[offset + 4] & 0xFF) << 8 | buffer[offset + 5] & 0xFF //
 						)//
 				);
-
+			
 			case 18 :
-
+				
 				if (buffer.length - offset < length) {
 					throw new IllegalArgumentException("byte[] buffer is too small: length: " + buffer.length + ", offset: " + offset);
 				}
@@ -209,11 +221,11 @@ public final class BaseNetHelper {
 								(buffer[offset + 16] & 0xFF) << 8 | buffer[offset + 17] & 0xFF //
 						)//
 				);
-
+			
 			default :
-
+				
 				throw new IllegalArgumentException("socketAddressFromBuffer: invalid address length: " + length);
 		}
-
+		
 	}
 }
