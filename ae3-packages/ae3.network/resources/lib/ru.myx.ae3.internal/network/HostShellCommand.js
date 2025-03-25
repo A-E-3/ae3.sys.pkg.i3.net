@@ -22,7 +22,7 @@ function runHostCommand() {
 		return false;
 	}
 
-	const result = (require('ae3').net.dns.resolveAll(hostname) || []).map(function(x){
+	const result = (require("ae3").net.dns.resolveAll(hostname) || []).map(function(x){
 		console.log("%s: %s", hostname, x.hostAddress);
 		return x.hostAddress;
 	});
