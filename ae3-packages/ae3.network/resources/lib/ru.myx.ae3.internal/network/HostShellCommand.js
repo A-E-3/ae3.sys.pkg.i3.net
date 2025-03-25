@@ -26,7 +26,7 @@ function runHostCommand() {
 		console.log("%s: %s", hostname, x.hostAddress);
 		return x.hostAddress;
 	});
-	if(!result || !result.length){
+	if(!result?.length){
 		return console.fail("can not resolve: %s", hostname);
 	}
 	return result;
