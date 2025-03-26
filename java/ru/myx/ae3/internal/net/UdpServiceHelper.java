@@ -47,22 +47,23 @@ public final class UdpServiceHelper {
 	private final static BasePrimitiveString STR_encrypt = Base.forString("encrypt");
 	private final static BasePrimitiveString STR_handlers = Base.forString("handlers");
 	private final static BasePrimitiveString STR_hostAddress = Base.forString("hostAddress");
+	private final static BasePrimitiveString STR_isReply = Base.forString("isReply");
 	private final static BasePrimitiveString STR_key = Base.forString("key");
 	private final static BasePrimitiveString STR_log = Base.forString("log");
 	private final static BasePrimitiveString STR_mode = Base.forString("mode");
 	private final static BasePrimitiveString STR_onDestroy = Base.forString("onDestroy");
 	private final static BasePrimitiveString STR_port = Base.forString("port");
-	private final static BasePrimitiveString STR_secret = Base.forString("secret");
-	private final static BasePrimitiveString STR_sendUdp = Base.forString("sendUdp");
-
-	private final static BasePrimitiveString STR_serial = Base.forString("serial");
 	private final static BasePrimitiveString STR_receiveQuerySerialsCache = Base.forString("receiveQuerySerialsCache");
 	private final static BasePrimitiveString STR_receiveReplySerialsCache = Base.forString("receiveReplySerialsCache");
-	private final static BasePrimitiveString STR_waitingTaskSerialsCache = Base.forString("waitingTaskSerialsCache");
 
+	private final static BasePrimitiveString STR_secret = Base.forString("secret");
+	private final static BasePrimitiveString STR_sendUdp = Base.forString("sendUdp");
+	private final static BasePrimitiveString STR_serial = Base.forString("serial");
 	private final static BasePrimitiveString STR_src = Base.forString("src");
+
 	private final static BasePrimitiveString STR_sRx = Base.forString("sRx");
 	private final static BasePrimitiveString STR_sTx = Base.forString("sTx");
+	private final static BasePrimitiveString STR_waitingTaskSerialsCache = Base.forString("waitingTaskSerialsCache");
 
 	/** @param instance
 	 * @param bufferObject
@@ -524,7 +525,7 @@ public final class UdpServiceHelper {
 						addressObject,
 						serialObject//
 				);
-				
+
 				// handler.callVEA(ctx, BaseObject.NULL, messageObject, addressObject,
 				// serialObject);
 			}
@@ -588,7 +589,7 @@ public final class UdpServiceHelper {
 	 *            addressObject
 	 *
 	 *            <code>
-			value : UdpServiceHelper.principalSendImpl || (function(b, d, m, a, key, s, len, pkt, k, v){
+			value : UdpServiceHelper.principalSendImpl || (function(b, d, m, a, key, s, len, pkt){
 			})
 	 * </code>
 	 *
@@ -661,24 +662,77 @@ public final class UdpServiceHelper {
 			}
 		}
 
-		/** <code>
-				s = m.serial ||= (this.sTx = 1 + Math.max(this.sTx, this.sRx));
-				s = m.serial || (m.serial = (this.sTx = 1 + Math.max(this.sTx, this.sRx)));
-		</code> */
-
-		/** s - serial **/
+		/** message serial int **/
 		final int serial;
-		{
+
+		/** <code>
+				if(m.isReply){
+					if( "number" !== typeof (s = m.serial) ){
+						console.log(
+							"UDP::Principal:sendImpl: %s: udp-send-skip, reply without numeric serial, message: %s",
+							this,
+							m
+						);
+						return 0;
+					}
+					this.cacheIncomingQuerySerial(s, m);
+				}else{
+					s = m.serial ||= (this.sTx = 1 + Math.max(this.sTx, this.sRx));
+				}
+		 * </code> */
+
+		if (m.baseGet(UdpServiceHelper.STR_isReply, BaseObject.UNDEFINED).baseToJavaBoolean()) {
+			
+			/** <code>
+					if( "number" !== typeof (s = m.serial) ){
+			 * </code> */
 			final BaseObject messageSerialObject = m.baseGet(UdpServiceHelper.STR_serial, BaseObject.UNDEFINED);
-			if (messageSerialObject != BaseObject.UNDEFINED) {
-				serial = messageSerialObject.baseToJavaInteger();
+			if (!messageSerialObject.baseIsPrimitiveNumber()) {
+				/** <code>
+					console.log(
+						"UDP::Principal:sendImpl: %s: udp-send-skip, reply without numeric serial, message: %s",
+						this,
+						m
+					);
+					return 0;
+				* </code> */
+				ctx.getConsole().log(//
+						"UDP::Principal:sendImpl:Java: %s: udp-send-skip, reply without numeric serial, message: %s",
+						instance.baseToPrimitive(ToPrimitiveHint.STRING).baseValue(),
+						m.baseToPrimitive(ToPrimitiveHint.STRING).baseValue()//
+				);
+				return 0;
+
+			}
+
+			serial = messageSerialObject.baseToJavaInteger();
+
+			/** <code>
+				this.cacheIncomingQuerySerial(s, m);
+			* </code> */
+			final BaseObject receiveQuerySerialsCache = instance.baseGet(UdpServiceHelper.STR_receiveQuerySerialsCache, BaseObject.UNDEFINED);
+			if (receiveQuerySerialsCache instanceof final CoarseDelayCache coarseDelayCache) {
+				coarseDelayCache.put(messageSerialObject.baseToInt32(), m);
 			} else {
-				final int thisTx = instance.baseGet(UdpServiceHelper.STR_sTx, BasePrimitiveNumber.ZERO).baseToJavaInteger();
-				final int thisRx = instance.baseGet(UdpServiceHelper.STR_sRx, BasePrimitiveNumber.ZERO).baseToJavaInteger();
-				serial = 1 + Math.max(thisTx, thisRx);
-				final BasePrimitiveNumber serialObject = Base.forInteger(serial);
-				m.baseDefine(UdpServiceHelper.STR_serial, serialObject, BaseProperty.ATTRS_MASK_WED);
-				instance.baseDefine(UdpServiceHelper.STR_sTx, serialObject, BaseProperty.ATTRS_MASK_WED);
+				receiveQuerySerialsCache.baseDefine(messageSerialObject.baseToInt32(), m);
+			}
+
+		} else {
+			/** <code>
+			s = m.serial ||= (this.sTx = 1 + Math.max(this.sTx, this.sRx));
+			</code> */
+			{
+				final BaseObject messageSerialObject = m.baseGet(UdpServiceHelper.STR_serial, BaseObject.UNDEFINED);
+				if (messageSerialObject != BaseObject.UNDEFINED) {
+					serial = messageSerialObject.baseToJavaInteger();
+				} else {
+					final int thisTx = instance.baseGet(UdpServiceHelper.STR_sTx, BasePrimitiveNumber.ZERO).baseToJavaInteger();
+					final int thisRx = instance.baseGet(UdpServiceHelper.STR_sRx, BasePrimitiveNumber.ZERO).baseToJavaInteger();
+					serial = 1 + Math.max(thisTx, thisRx);
+					final BasePrimitiveNumber serialObject = Base.forInteger(serial);
+					m.baseDefine(UdpServiceHelper.STR_serial, serialObject, BaseProperty.ATTRS_MASK_WED);
+					instance.baseDefine(UdpServiceHelper.STR_sTx, serialObject, BaseProperty.ATTRS_MASK_WED);
+				}
 			}
 		}
 
