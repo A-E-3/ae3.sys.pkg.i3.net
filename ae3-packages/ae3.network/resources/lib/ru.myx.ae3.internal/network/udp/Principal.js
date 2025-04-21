@@ -1,11 +1,14 @@
+/**
+ * 
+ */
+
 const ae3 = require("ae3");
-const Transfer = ae3.Transfer;
 const UdpServiceHelper = require("java.class/ru.myx.ae3.internal.net.UdpServiceHelper");
 
-const wrapCopier = Transfer.wrapCopier;
-const copyBytes = Transfer.copyBytes;
-const xorBytes = Transfer.xorBytes;
-const updateMessageDigest = Transfer.updateMessageDigest;
+const wrapCopier = ae3.Transfer.wrapCopier;
+const copyBytes = ae3.Transfer.copyBytes;
+const xorBytes = ae3.Transfer.xorBytes;
+const updateMessageDigest = ae3.Transfer.updateMessageDigest;
 const isSocketAddress = ae3.net.isSocketAddress;
 const socketAddress = ae3.net.socketAddress;
 
@@ -320,7 +323,8 @@ const Principal = module.exports = ae3.Class.create(
 						v = m[k];
 						isSocketAddress(v) && (m[k] = v.address + ':' + v.port);
 					});
-					console.log("UDP::Principal:sendImpl: %s: udp-send: -> %s @ %s:%s, ser: %s, len: %s, %s",
+					console.log(
+						"UDP::Principal:sendImpl: %s: udp-send: -> %s @ %s:%s, ser: %s, len: %s, %s",
 						this, 
 						Format.binaryAsHex(key.slice(0, 12)), 
 						a.address.hostAddress, 

@@ -581,7 +581,7 @@ public final class UdpServiceHelper {
 	 * @param instance
 	 * @param bufferObject
 	 *            bufferObject
-	 * @param d
+	 * @param digestObject
 	 *            digestObject
 	 * @param m
 	 *            messageObject
@@ -604,35 +604,39 @@ public final class UdpServiceHelper {
 			final ExecProcess ctx,
 			final BaseObject instance,
 			final BaseObject bufferObject,
-			final BaseObject d,
+			final BaseObject digestObject,
 			final BaseObject m,
 			final BaseObject addressObject//
 	) throws IOException, CloneNotSupportedException, DigestException {
 
 		/** <code>
-				if( ! (a ||= this.dst) ){
-					if(false !== m.log){
-						console.log(
-							"UDP::Principal:sendImpl: %s: udp-send-skip, no address, message: %s",
-							this,
-							m
-						);
-					}
-					return 0;
-				}
+			if( ! (a ||= this.dst) ){
 		</code> */
 		/** a - addressObject **/
 		final BaseObject a = addressObject.baseToJavaBoolean()
 			? addressObject
 			: instance.baseGet(UdpServiceHelper.STR_dst, BaseObject.UNDEFINED);
 		if (!a.baseToJavaBoolean()) {
+			/** <code>
+				if(false !== m.log){
+			</code> */
 			if (m.baseGet(UdpServiceHelper.STR_log, BaseObject.UNDEFINED) != BaseObject.FALSE) {
+				/** <code>
+					console.log(
+						"UDP::Principal:sendImpl: %s: udp-send-skip, no address, message: %s",
+						this,
+						m
+					);
+				</code> */
 				ctx.getConsole().log(//
 						"UDP::Principal:sendImpl:Java: %s: udp-send-skip, no address, message: %s",
 						instance.baseToPrimitive(ToPrimitiveHint.STRING).baseValue(),
 						m.baseToPrimitive(ToPrimitiveHint.STRING).baseValue()//
 				);
 			}
+			/** <code>
+				return 0;
+			</code> */
 			return 0;
 		}
 
@@ -667,22 +671,9 @@ public final class UdpServiceHelper {
 
 		/** <code>
 				if(m.isReply){
-					if( "number" !== typeof (s = m.serial) ){
-						console.log(
-							"UDP::Principal:sendImpl: %s: udp-send-skip, reply without numeric serial, message: %s",
-							this,
-							m
-						);
-						return 0;
-					}
-					this.cacheIncomingQuerySerial(s, m);
-				}else{
-					s = m.serial ||= (this.sTx = 1 + Math.max(this.sTx, this.sRx));
-				}
 		 * </code> */
-
 		if (m.baseGet(UdpServiceHelper.STR_isReply, BaseObject.UNDEFINED).baseToJavaBoolean()) {
-			
+
 			/** <code>
 					if( "number" !== typeof (s = m.serial) ){
 			 * </code> */
@@ -791,25 +782,27 @@ public final class UdpServiceHelper {
 			m.encrypt && this.payloadEncrypt(b, len, d);
 			</code> */
 			if (m.baseGet(UdpServiceHelper.STR_encrypt, BaseObject.UNDEFINED).baseToJavaBoolean()) {
-				final MessageDigest digest1 = (MessageDigest) ((MessageDigest) d.baseValue()).clone();
-				Transfer.updateMessageDigest(digest1, b, 16, 16);
-				secret.updateMessageDigest(digest1);
-				Transfer.xorBytes(b, 32, digest1.digest(), len);
+				final MessageDigest digest = (MessageDigest) ((MessageDigest) digestObject.baseValue()).clone();
+				Transfer.updateMessageDigest(digest, b, 16, 16);
+				secret.updateMessageDigest(digest);
+				Transfer.xorBytes(b, 32, digest.digest(), len);
 			}
 
-			/** <code>
-			d = d.clone();
-			pkt.slice(16, len - 16).updateMessageDigest(d);
-			this.secret.updateMessageDigest(d);
-			</code> */
-			final MessageDigest digest = (MessageDigest) ((MessageDigest) d.baseValue()).clone();
-			packetBinary.slice(16, len - 16).updateMessageDigest(digest);
-			secret.updateMessageDigest(digest);
+			{
+				/** <code>
+				d = d.clone();
+				pkt.slice(16, len - 16).updateMessageDigest(d);
+				this.secret.updateMessageDigest(d);
+				</code> */
+				final MessageDigest digest = (MessageDigest) ((MessageDigest) digestObject.baseValue()).clone();
+				packetBinary.slice(16, len - 16).updateMessageDigest(digest);
+				secret.updateMessageDigest(digest);
 
-			/** <code>
-			copyBytes(d.result, 0, b, 0, 16);
-			</code> */
-			Transfer.copyBytes(digest.digest(), 0, b, 0, 16);
+				/** <code>
+				copyBytes(d.result, 0, b, 0, 16);
+				</code> */
+				Transfer.copyBytes(digest.digest(), 0, b, 0, 16);
+			}
 		}
 
 		/** <code>
@@ -818,7 +811,8 @@ public final class UdpServiceHelper {
 						v = m[k];
 						isSocketAddress(v) && (m[k] = v.address + ':' + v.port);
 					});
-					console.log("UDP::Principal:sendImpl: %s: udp-send: -> %s @ %s:%s, ser: %s, len: %s, %s",
+					console.log(
+						"UDP::Principal:sendImpl: %s: udp-send: -> %s @ %s:%s, ser: %s, len: %s, %s",
 						this,
 						Format.binaryAsHex(key.slice(0, 12)),
 						a.address.hostAddress,
