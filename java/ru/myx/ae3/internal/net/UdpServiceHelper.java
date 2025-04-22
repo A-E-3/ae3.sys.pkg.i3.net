@@ -33,11 +33,11 @@ import ru.myx.sapi.FormatSAPI;
 /** @author myx */
 @ReflectionManual
 public final class UdpServiceHelper {
-
+	
 	private static final ExecProcess CTX = Exec.createProcess(Exec.getRootProcess(), "UdpServiceHelper Context");
-
+	
 	private final static BasePrimitiveNumber INT_32 = Base.forInteger(32);
-
+	
 	private final static BasePrimitiveString STR_address = Base.forString("address");
 	private final static BasePrimitiveString STR_argument = Base.forString("argument");
 	private final static BasePrimitiveString STR_build = Base.forString("build");
@@ -55,16 +55,16 @@ public final class UdpServiceHelper {
 	private final static BasePrimitiveString STR_port = Base.forString("port");
 	private final static BasePrimitiveString STR_receiveQuerySerialsCache = Base.forString("receiveQuerySerialsCache");
 	private final static BasePrimitiveString STR_receiveReplySerialsCache = Base.forString("receiveReplySerialsCache");
-
+	
 	private final static BasePrimitiveString STR_secret = Base.forString("secret");
 	private final static BasePrimitiveString STR_sendUdp = Base.forString("sendUdp");
 	private final static BasePrimitiveString STR_serial = Base.forString("serial");
 	private final static BasePrimitiveString STR_src = Base.forString("src");
-
+	
 	private final static BasePrimitiveString STR_sRx = Base.forString("sRx");
 	private final static BasePrimitiveString STR_sTx = Base.forString("sTx");
 	private final static BasePrimitiveString STR_waitingTaskSerialsCache = Base.forString("waitingTaskSerialsCache");
-
+	
 	/** @param instance
 	 * @param bufferObject
 	 * @param offsetObject
@@ -94,7 +94,7 @@ public final class UdpServiceHelper {
 			final BaseObject bufferObject,
 			final BaseObject offsetObject//
 	) throws IOException {
-
+		
 		final byte[] buffer = (byte[]) bufferObject.baseValue();
 		final int offset = offsetObject.baseToJavaInteger();
 		if (buffer == null) {
@@ -103,27 +103,27 @@ public final class UdpServiceHelper {
 		if (buffer.length - offset < 1400) {
 			throw new IllegalArgumentException("byte[] buffer is too small: length: " + buffer.length + ", offset: " + offset);
 		}
-
+		
 		final String component = instance.baseGet(UdpServiceHelper.STR_component, BaseObject.UNDEFINED).baseToJavaString();
 		final TransferCopier argument = Transfer.createCopierFromBinary(instance.baseGet(UdpServiceHelper.STR_argument, TransferCopier.NUL_COPIER));
-
+		
 		int length = 0;
-
+		
 		// component X bytes
 		length += Transfer.createCopierUtf8(component).copy(0, buffer, offset, 128);
-
+		
 		// ZERO byte
 		buffer[offset + length] = 0;
 		length += 1;
-
+		
 		// argument X bytes
 		if (argument != null) {
 			length += argument.copy(0, buffer, offset + length, 1024);
 		}
-
+		
 		return length;
 	}
-
+	
 	/** @param instance
 	 * @param bufferObject
 	 * @param offsetObject
@@ -135,24 +135,24 @@ public final class UdpServiceHelper {
 			final BaseObject instance,
 			final BaseObject bufferObject,
 			final BaseObject offsetObject) throws IllegalArgumentException {
-
+		
 		final byte[] buffer = (byte[]) bufferObject.baseValue();
 		if (buffer == null) {
 			throw new IllegalArgumentException("byte[] buffer is expected, bufferObject class: " + bufferObject.getClass().getName());
 		}
-
+		
 		int offset = offsetObject.baseToJavaInteger();
 		if (offset + 6 >= buffer.length) {
 			throw new IllegalArgumentException("invalid offset: buffer length: " + buffer.length + ", offset: " + offset);
 		}
-
+		
 		final BaseObject srcObject = instance//
 				.baseGet(UdpServiceHelper.STR_src, BaseObject.UNDEFINED)//
 		;
 		if (srcObject == BaseObject.UNDEFINED) {
 			throw new IllegalArgumentException("src object is expected, instance class: " + instance.getClass().getName());
 		}
-
+		
 		final BaseObject addressObject = srcObject//
 				.baseGet(UdpServiceHelper.STR_address, BaseObject.UNDEFINED)//
 				.baseGet(UdpServiceHelper.STR_address, BaseObject.UNDEFINED)//
@@ -161,28 +161,28 @@ public final class UdpServiceHelper {
 		if (address == null) {
 			throw new IllegalArgumentException("byte[] address is expected, addressObject class: " + addressObject.getClass().getName());
 		}
-
+		
 		final int port = srcObject//
 				.baseGet(UdpServiceHelper.STR_port, BaseObject.UNDEFINED)//
 				.baseToJavaInteger()//
 		;
-
+		
 		if (port <= 0 || port > 65535) {
 			throw new IllegalArgumentException("port number is invalid, portNnumber: " + port + ", srcObject class: " + srcObject.getClass().getName());
 		}
-
+		
 		buffer[offset++] = address[0];
 		buffer[offset++] = address[1];
 		buffer[offset++] = address[2];
 		buffer[offset++] = address[3];
-
+		
 		buffer[offset++] = (byte) ((port & 0xFF00) >> 8);
 		buffer[offset++] = (byte) (port & 0xFF);
-
+		
 		// return BaseNumber.SIX;
 		return 6;
 	}
-
+	
 	/** @param instance
 	 * @param bufferObject
 	 * @param offsetObject
@@ -194,11 +194,11 @@ public final class UdpServiceHelper {
 			final BaseObject instance,
 			final BaseObject bufferObject,
 			final BaseObject offsetObject) throws IllegalArgumentException {
-
+		
 		/** exactly the same */
 		return UdpServiceHelper.buildMsgHelo(instance, bufferObject, offsetObject);
 	}
-
+	
 	/** @param instance
 	 * @param bufferObject
 	 * @param offsetObject
@@ -210,44 +210,44 @@ public final class UdpServiceHelper {
 			final BaseObject instance,
 			final BaseObject bufferObject,
 			final BaseObject offsetObject) throws IllegalArgumentException {
-
+		
 		final byte[] buffer = (byte[]) bufferObject.baseValue();
 		if (buffer == null) {
 			throw new IllegalArgumentException("byte[] buffer is expected, bufferObject class: " + bufferObject.getClass().getName());
 		}
-
+		
 		int offset = offsetObject.baseToJavaInteger();
 		if (offset + 3 >= buffer.length) {
 			throw new IllegalArgumentException("invalid offset: buffer length: " + buffer.length + ", offset: " + offset);
 		}
-
+		
 		final int port = instance//
 				.baseGet(UdpServiceHelper.STR_port, BaseObject.UNDEFINED)//
 				.baseToJavaInteger()//
 		;
-
+		
 		if (port <= 0 || port > 65535) {
 			throw new IllegalArgumentException("port number is invalid, portNnumber: " + port + ", instanceObject class: " + instance.getClass().getName());
 		}
-
+		
 		final int mode = instance//
 				.baseGet(UdpServiceHelper.STR_mode, BaseObject.UNDEFINED)//
 				.baseToJavaInteger()//
 		;
-
+		
 		if (mode < 0 || mode > 255) {
 			throw new IllegalArgumentException("mode number is invalid, modeNnumber: " + mode + ", instanceObject class: " + instance.getClass().getName());
 		}
-
+		
 		buffer[offset++] = (byte) ((port & 0xFF00) >> 8);
 		buffer[offset++] = (byte) (port & 0xFF);
-
+		
 		buffer[offset++] = (byte) (mode & 0xFF);
-
+		
 		// return BaseNumber.THREE;
 		return 3;
 	}
-
+	
 	/** finished task expired
 	 *
 	 * @param instance
@@ -264,7 +264,7 @@ public final class UdpServiceHelper {
 	@ReflectionExplicit
 	@ReflectionThisArgument
 	public static void expireReceiveCachedSerial(final BaseObject instance, final BaseObject serial) {
-
+		
 		final int thisRx = instance.baseGet(UdpServiceHelper.STR_sRx, BasePrimitiveNumber.ZERO).baseToJavaInteger();
 		final int thisTx = instance.baseGet(UdpServiceHelper.STR_sTx, BasePrimitiveNumber.ZERO).baseToJavaInteger();
 		final int taskAx = serial.baseToJavaInteger();
@@ -272,7 +272,7 @@ public final class UdpServiceHelper {
 			instance.baseDefine(UdpServiceHelper.STR_sRx, serial, BaseProperty.ATTRS_MASK_WED);
 		}
 	}
-
+	
 	/** pending task timeout expired...
 	 *
 	 * @param ctx
@@ -291,7 +291,7 @@ public final class UdpServiceHelper {
 	@ReflectionContextArgument
 	@ReflectionThisArgument
 	public static void expireWaitingTaskSerial(final ExecProcess ctx, final BaseObject instance, final BaseObject serial, final BaseObject task) {
-
+		
 		final BaseObject receiveReplySerialsCache = instance.baseGet(UdpServiceHelper.STR_receiveReplySerialsCache, BaseObject.UNDEFINED);
 		if (receiveReplySerialsCache instanceof final CoarseDelayCache coarseDelayCache) {
 			coarseDelayCache.put(serial.baseToInt32(), task);
@@ -304,7 +304,7 @@ public final class UdpServiceHelper {
 		}
 		onDestroy.callVE0(ctx, task);
 	}
-
+	
 	/** @param instance
 	 *            - Principal
 	 * @param pktObject
@@ -338,25 +338,25 @@ public final class UdpServiceHelper {
 			final BaseObject offsetObject,
 			final BaseObject payloadLengthObject,
 			final BaseObject digestObject) throws IOException, CloneNotSupportedException, ConcurrentModificationException, IllegalArgumentException, DigestException {
-
+		
 		final TransferCopier pkt = Transfer.createCopierFromBinary(pktObject);
 		if (pkt == null) {
 			throw new IllegalArgumentException("'pkt' binary argument is expected, pkt: " + pkt);
 		}
-
+		
 		final int offset = offsetObject.baseToJavaInteger();
 		final int payloadLength = payloadLengthObject.baseToJavaInteger();
-
+		
 		final byte[] buffer = (byte[]) bufferObject.baseValue();
 		if (buffer == null) {
 			throw new IllegalArgumentException("byte[] buffer is expected, bufferObject class: " + bufferObject.getClass().getName());
 		}
-
+		
 		final TransferCopier secret = Transfer.createCopierFromBinary(instance.baseGet(UdpServiceHelper.STR_secret, TransferCopier.NUL_COPIER));
 		if (secret == null || secret.length() == 0) {
 			throw new IllegalArgumentException("non empty 'secret' binary property is expected, secret: " + secret);
 		}
-
+		
 		final MessageDigest digest = (MessageDigest) ((MessageDigest) digestObject.baseValue()).clone();
 		Transfer.updateMessageDigest(digest, pkt, 16, 16);
 		secret.updateMessageDigest(digest);
@@ -389,7 +389,7 @@ public final class UdpServiceHelper {
 	@ReflectionThisArgument
 	public static int payloadEncrypt(final BaseObject instance, final BaseObject bufferObject, final BaseObject payloadLengthObject, final BaseObject digestObject)
 			throws IOException, CloneNotSupportedException, ConcurrentModificationException, IllegalArgumentException, DigestException {
-
+		
 		final byte[] buffer = (byte[]) bufferObject.baseValue();
 		if (buffer == null) {
 			throw new IllegalArgumentException("byte[] buffer is expected, bufferObject class: " + bufferObject.getClass().getName());
@@ -399,14 +399,14 @@ public final class UdpServiceHelper {
 		if (secret == null || secret.length() == 0) {
 			throw new IllegalArgumentException("non empty 'secret' binary property is expected, secret: " + secret);
 		}
-
+		
 		final MessageDigest digest = (MessageDigest) ((MessageDigest) digestObject.baseValue()).clone();
 		Transfer.updateMessageDigest(digest, buffer, 16, 16);
 		secret.updateMessageDigest(digest);
 		Transfer.xorBytes(buffer, 32, digest.digest(), payloadLength);
 		return payloadLength;
 	}
-
+	
 	/** @param ctx
 	 * @param instance
 	 * @param messageObject
@@ -419,7 +419,7 @@ public final class UdpServiceHelper {
 				if(this.sTx < serial && (serial > 16000000) === (this.sTx > 16000000)){
 					this.sTx = serial;
 				}
-
+	
 				c = message.code;
 				if( ((c^0) !== c) ){
 					return;
@@ -444,7 +444,7 @@ public final class UdpServiceHelper {
 			final BaseObject addressObject,
 			final BaseObject serialObject//
 	) {
-
+		
 		/** <code>
 			if(this.sTx < serial && (serial > 16000000) === (this.sTx > 16000000)){
 				this.sTx = serial;
@@ -457,7 +457,7 @@ public final class UdpServiceHelper {
 				instance.baseDefine(UdpServiceHelper.STR_sTx, serialObject, BaseProperty.ATTRS_MASK_WED);
 			}
 		}
-
+		
 		/** <code>
 			c = message.code;
 			if( ((c^0) !== c) ){
@@ -477,7 +477,7 @@ public final class UdpServiceHelper {
 			}
 			return;
 		}
-
+		
 		/** <code>
 			h = this.handlers[c];
 			if(h){
@@ -489,7 +489,7 @@ public final class UdpServiceHelper {
 		if (registry == null) {
 			throw new IllegalArgumentException("'handlers' array property expected on instance object");
 		}
-
+		
 		/** handler is a single handler **/
 		{
 			final BaseObject handlerObject = registry.baseGet(code, BaseObject.UNDEFINED);
@@ -499,7 +499,7 @@ public final class UdpServiceHelper {
 				}
 				return;
 			}
-
+			
 			/** <code>
 				setTimeout(h.bind(this, message, address, serial), 0);
 				// h(message, address, serial);
@@ -525,12 +525,12 @@ public final class UdpServiceHelper {
 						addressObject,
 						serialObject//
 				);
-
+				
 				// handler.callVEA(ctx, BaseObject.NULL, messageObject, addressObject,
 				// serialObject);
 			}
 		}
-
+		
 		/** handlers is an array **/
 		if (false) {
 			final BaseArray handlers = registry.baseGet(code, BaseObject.UNDEFINED).baseArray();
@@ -540,7 +540,7 @@ public final class UdpServiceHelper {
 				}
 				return;
 			}
-
+			
 			/** <code>
 				for(c of h){
 					setTimeout(c.bind(this, message, address, serial), 0);
@@ -569,14 +569,14 @@ public final class UdpServiceHelper {
 							addressObject,
 							serialObject//
 					);
-
+					
 					// handler.callVEA(ctx, BaseObject.NULL, messageObject, addressObject,
 					// serialObject);
 				}
 			}
 		}
 	}
-
+	
 	/** @param ctx
 	 * @param instance
 	 * @param bufferObject
@@ -608,7 +608,7 @@ public final class UdpServiceHelper {
 			final BaseObject m,
 			final BaseObject addressObject//
 	) throws IOException, CloneNotSupportedException, DigestException {
-
+		
 		/** <code>
 			if( ! (a ||= this.dst) ){
 		</code> */
@@ -622,8 +622,7 @@ public final class UdpServiceHelper {
 			</code> */
 			if (m.baseGet(UdpServiceHelper.STR_log, BaseObject.UNDEFINED) != BaseObject.FALSE) {
 				/** <code>
-					console.log(
-						"UDP::Principal:sendImpl: %s: udp-send-skip, no address, message: %s",
+					console.log("UDP::Principal:sendImpl: %s: udp-send-skip, no address, message: %s",
 						this,
 						m
 					);
@@ -639,11 +638,10 @@ public final class UdpServiceHelper {
 			</code> */
 			return 0;
 		}
-
+		
 		/** <code>
 				if( ! (key = (this.key ?? m.key)) ){
-					console.log(
-						"UDP::Principal:sendImpl: %s: udp-send-skip, no dst alias, message: %s",
+					console.log("UDP::Principal:sendImpl: %s: udp-send-skip, no dst alias, message: %s",
 						this,
 						m
 					);
@@ -665,23 +663,22 @@ public final class UdpServiceHelper {
 				return 0;
 			}
 		}
-
+		
 		/** message serial int **/
 		final int serial;
-
+		
 		/** <code>
 				if(m.isReply){
 		 * </code> */
 		if (m.baseGet(UdpServiceHelper.STR_isReply, BaseObject.UNDEFINED).baseToJavaBoolean()) {
-
+			
 			/** <code>
 					if( "number" !== typeof (s = m.serial) ){
 			 * </code> */
 			final BaseObject messageSerialObject = m.baseGet(UdpServiceHelper.STR_serial, BaseObject.UNDEFINED);
 			if (!messageSerialObject.baseIsPrimitiveNumber()) {
 				/** <code>
-					console.log(
-						"UDP::Principal:sendImpl: %s: udp-send-skip, reply without numeric serial, message: %s",
+					console.log("UDP::Principal:sendImpl: %s: udp-send-skip, reply without numeric serial, message: %s",
 						this,
 						m
 					);
@@ -693,11 +690,11 @@ public final class UdpServiceHelper {
 						m.baseToPrimitive(ToPrimitiveHint.STRING).baseValue()//
 				);
 				return 0;
-
+				
 			}
-
+			
 			serial = messageSerialObject.baseToJavaInteger();
-
+			
 			/** <code>
 				this.cacheIncomingQuerySerial(s, m);
 			* </code> */
@@ -707,7 +704,7 @@ public final class UdpServiceHelper {
 			} else {
 				receiveQuerySerialsCache.baseDefine(messageSerialObject.baseToInt32(), m);
 			}
-
+			
 		} else {
 			/** <code>
 			s = m.serial ||= (this.sTx = 1 + Math.max(this.sTx, this.sRx));
@@ -726,7 +723,7 @@ public final class UdpServiceHelper {
 				}
 			}
 		}
-
+		
 		/** <code>
 			b[16 + 12 + 1] = (s >> 16) & 0xFF;
 			b[16 + 12 + 2] = (s >> 8) & 0xFF;
@@ -740,7 +737,7 @@ public final class UdpServiceHelper {
 		b[16 + 12 + 1] = (byte) (serial >> 16 & 0xFF);
 		b[16 + 12 + 2] = (byte) (serial >> 8 & 0xFF);
 		b[16 + 12 + 3] = (byte) (serial >> 0 & 0xFF);
-
+		
 		/** <code>
 			len = m.build(b, 32) + 32;
 		</code> */
@@ -752,7 +749,7 @@ public final class UdpServiceHelper {
 			}
 			len = messageBuildFn.callIE2(ctx, m, bufferObject, UdpServiceHelper.INT_32) + 32;
 		}
-
+		
 		/** <code>
 			key.copy(0, b, 16, 12);
 		</code> */
@@ -761,23 +758,23 @@ public final class UdpServiceHelper {
 			throw new IllegalArgumentException("non empty 'key' binary property is expected, key object: " + keyObject);
 		}
 		keyBinary.copy(0, b, 16, 12);
-
+		
 		/** <code>
 			b[16 + 12] = m.code;
 		</code> */
 		b[16 + 12] = (byte) (m.baseGet(UdpServiceHelper.STR_code, BaseObject.UNDEFINED).baseToJavaInteger() & 0xFF);
-
+		
 		/** <code>
 			pkt = Transfer.wrapCopier(b, 0, len);
 		</code> */
 		final TransferCopier packetBinary = Transfer.wrapCopier(b, 0, len);
-
+		
 		{
 			final TransferCopier secret = Transfer.createCopierFromBinary(instance.baseGet(UdpServiceHelper.STR_secret, TransferCopier.NUL_COPIER));
 			if (secret == null || secret.length() == 0) {
 				throw new IllegalArgumentException("non empty 'secret' binary property is expected, secret: " + secret);
 			}
-
+			
 			/** <code>
 			m.encrypt && this.payloadEncrypt(b, len, d);
 			</code> */
@@ -787,7 +784,7 @@ public final class UdpServiceHelper {
 				secret.updateMessageDigest(digest);
 				Transfer.xorBytes(b, 32, digest.digest(), len);
 			}
-
+			
 			{
 				/** <code>
 				d = d.clone();
@@ -797,22 +794,21 @@ public final class UdpServiceHelper {
 				final MessageDigest digest = (MessageDigest) ((MessageDigest) digestObject.baseValue()).clone();
 				packetBinary.slice(16, len - 16).updateMessageDigest(digest);
 				secret.updateMessageDigest(digest);
-
+				
 				/** <code>
 				copyBytes(d.result, 0, b, 0, 16);
 				</code> */
 				Transfer.copyBytes(digest.digest(), 0, b, 0, 16);
 			}
 		}
-
+		
 		/** <code>
 				if(true === m.log){
 					Object.keys( (m = Object.create(m)) ).forEach(function(k, v){
 						v = m[k];
 						isSocketAddress(v) && (m[k] = v.address + ':' + v.port);
 					});
-					console.log(
-						"UDP::Principal:sendImpl: %s: udp-send: -> %s @ %s:%s, ser: %s, len: %s, %s",
+					console.log("UDP::Principal:sendImpl: %s: udp-send: -> %s @ %s:%s, ser: %s, len: %s, %s",
 						this,
 						Format.binaryAsHex(key.slice(0, 12)),
 						a.address.hostAddress,
@@ -837,7 +833,7 @@ public final class UdpServiceHelper {
 							)//
 					);
 				}
-
+				
 			}
 			ctx.getConsole().log(//
 					"UDP::Principal:sendImpl:Java: %s: udp-send: -> %s @ %s:%s, ser: %s, len: %s, %s'",
@@ -850,7 +846,7 @@ public final class UdpServiceHelper {
 					m.baseToPrimitive(ToPrimitiveHint.STRING).baseValue()//
 			);
 		}
-
+		
 		/** <code>
 			return this.sendUdp(pkt, a);
 		</code> */
@@ -862,7 +858,7 @@ public final class UdpServiceHelper {
 			return sendUdpFn.callIE2(ctx, instance, packetBinary, a);
 		}
 	}
-
+	
 	/** @param instance
 	 * @return <code>
 	 *      function(){
@@ -876,11 +872,11 @@ public final class UdpServiceHelper {
 	@ReflectionExplicit
 	@ReflectionThisArgument
 	public static String toStringMsgCall(final BaseObject instance) throws IOException {
-
+		
 		final String component = instance.baseGet(UdpServiceHelper.STR_component, BaseObject.UNDEFINED).baseToJavaString();
 		final long argumentLength = Transfer.createCopierFromBinary(instance.baseGet(UdpServiceHelper.STR_argument, TransferCopier.NUL_COPIER)).length();
 		final int serial = instance.baseGet(UdpServiceHelper.STR_serial, BaseObject.UNDEFINED).baseToJavaInteger();
-
+		
 		return argumentLength == 0
 			? "[CALL " + FormatSAPI.jsString(component) + ", sTx:" + serial + "]"
 			: "[CALL " + FormatSAPI.jsString(component) + ", " + FormatSAPI.bytesRound(argumentLength) + "B, sTx:" + serial + "]";

@@ -260,8 +260,7 @@ const Principal = module.exports = ae3.Class.create(
 			){
 				if( ! (a ||= this.dst) ){
 					if(false !== m.log){
-						console.log(
-							"UDP::Principal:sendImpl: %s: udp-send-skip, no address, message: %s", 
+						console.log("UDP::Principal:sendImpl: %s: udp-send-skip, no address, message: %s", 
 							this, 
 							m
 						);
@@ -269,8 +268,7 @@ const Principal = module.exports = ae3.Class.create(
 					return 0;
 				}
 				if( ! (key = (this.key ?? m.key)) ){
-					console.log(
-						"UDP::Principal:sendImpl: %s: udp-send-skip, no dst alias, message: %s", 
+					console.log("UDP::Principal:sendImpl: %s: udp-send-skip, no dst alias, message: %s", 
 						this, 
 						m
 					);
@@ -279,8 +277,7 @@ const Principal = module.exports = ae3.Class.create(
 				
 				if(m.isReply){
 					if( "number" !== typeof (s = m.serial) ){
-						console.log(
-							"UDP::Principal:sendImpl: %s: udp-send-skip, reply without numeric serial, message: %s", 
+						console.log("UDP::Principal:sendImpl: %s: udp-send-skip, reply without numeric serial, message: %s", 
 							this, 
 							m
 						);
@@ -323,8 +320,7 @@ const Principal = module.exports = ae3.Class.create(
 						v = m[k];
 						isSocketAddress(v) && (m[k] = v.address + ':' + v.port);
 					});
-					console.log(
-						"UDP::Principal:sendImpl: %s: udp-send: -> %s @ %s:%s, ser: %s, len: %s, %s",
+					console.log("UDP::Principal:sendImpl: %s: udp-send: -> %s @ %s:%s, ser: %s, len: %s, %s",
 						this, 
 						Format.binaryAsHex(key.slice(0, 12)), 
 						a.address.hostAddress, 
