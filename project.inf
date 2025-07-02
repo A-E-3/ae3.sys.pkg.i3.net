@@ -1,4 +1,3 @@
-Type: ae3.Package
 Name: ae3.sys.pkg.i3.net
 Info: Base Network SDK and tools
 Requires: \
